@@ -1,12 +1,12 @@
 function [cOptimal,gammaOptimal,alphaOptimal] = learnRPPforEach(T,indicatorT,e0)
 %UNTITLED3 Summary of this function goes here
 % Detailed explanation goes here
-iterMax=300;
+iterMax=200;
 beta1=0.0002;
 beta2=0.0002;
-c(1)=3;
-gamma(1)=5;
-alpha(1)=1;
+C(1)=1;
+Gamma(1)=5;
+Alpha(1)=1;
 indicatorTimeList = T(T<=indicatorT);
 N=length(indicatorTimeList);
 if N<length(T)
@@ -16,44 +16,47 @@ else
 end
 T0=1.1;
 for i=1:iterMax
+    alpha = Alpha(i);c=C(i);gamma=Gamma(i);
     %% updating c
     k=1;
-    e = 1+ e0 -e0*exp(-1*alpha(end));
-    X=(T(k).^(1-gamma(end))-T0.^(1-gamma(end)))*(e-exp(-1*alpha(end)*k))/((1-gamma(end))*(1-exp(-1*alpha(end))));
+    e = 1+ e0 -e0*exp(-1*alpha);
+    X=(T(k).^(1-gamma)-T0.^(1-gamma))*(e-exp(-1*alpha*k))/((1-gamma)*(1-exp(-1*alpha)));
     for k=2:N+1
-        X=X+(T(k).^(1-gamma(end))-T(k-1).^(1-gamma(end)))*(e-exp(-1*alpha(end)*k))/((1-gamma(end))*(1-exp(-1*alpha(end))));
+        X=X+(T(k).^(1-gamma)-T(k-1).^(1-gamma))*(e-exp(-1*alpha*k))/((1-gamma)*(1-exp(-1*alpha)));
     end
-    c(i+1)=N/X;
+    C(i+1)=N/X;
+    c=C(i+1);
     %% updating gamma
     k=1;
-    dXGamma=(e-exp(-1*alpha(end)*k))*((T0.^(1-gamma(i))*log(T0)-T(k).^(1-gamma(i))*log(T(k)))/(1-gamma(i))+(T(k).^(1-gamma(i))-T0.^(1-gamma(i)))/((1-gamma(i)).^2))/(1-exp(-1*alpha(end)));
+    dXGamma=(e-exp(-1*alpha*k))*((T0.^(1-gamma)*log(T0)-T(k).^(1-gamma)*log(T(k)))/(1-gamma)+(T(k).^(1-gamma)-T0.^(1-gamma))/((1-gamma).^2))/(1-exp(-1*alpha));
     for k=2:N
-        dXGamma = dXGamma +(e-exp(-1*alpha(end)*k))*((T(k-1).^(1-gamma(i))*log(T(k-1))-T(k).^(1-gamma(i))*log(T(k)))/(1-gamma(i))+(T(k).^(1-gamma(i))-T(k-1).^(1-gamma(i)))/((1-gamma(i)).^2))/(1-exp(-1*alpha(end)));
+        dXGamma = dXGamma +(e-exp(-1*alpha*k))*((T(k-1).^(1-gamma)*log(T(k-1))-T(k).^(1-gamma)*log(T(k)))/(1-gamma)+(T(k).^(1-gamma)-T(k-1).^(1-gamma))/((1-gamma).^2))/(1-exp(-1*alpha));
     end
-    dGamma = -1*sum(log(T(1:N)))-c(end)*dXGamma;
-    gamma(i+1) = gamma(i) + beta1*dGamma;
-    
+    dGamma = -1*sum(log(T(1:N)))-c*dXGamma;
+    Gamma(i+1) = gamma + beta1*dGamma;
+    gamma = Gamma(i+1);
     %% updating alpha
     k=1;
-    dXAlpha=(T(k).^(1-gamma(end))-T0.^(1-gamma(end)))*(k*exp(-1*alpha(i)*k)-(k-1)*exp(-1*alpha(i)*(k+1))-exp(-1*alpha(i)))/((1-gamma(end))*((1-exp(-1*alpha(i))).^2));
+    dXAlpha=(T(k).^(1-gamma)-T0.^(1-gamma))*(k*exp(-1*alpha*k)-(k-1)*exp(-1*alpha*(k+1))-exp(-1*alpha))/((1-gamma)*((1-exp(-1*alpha)).^2));
     for k=2:N
-        dXAlpha=dXAlpha+(T(k).^(1-gamma(end))-T(k-1).^(1-gamma(end)))*(k*exp(-1*alpha(i)*k)-(k-1)*exp(-1*alpha(i)*(k+1))-exp(-1*alpha(i)))/((1-gamma(end))*((1-exp(-1*alpha(i))).^2));
+        dXAlpha=dXAlpha+(T(k).^(1-gamma)-T(k-1).^(1-gamma))*(k*exp(-1*alpha*k)-(k-1)*exp(-1*alpha*(k+1))-exp(-1*alpha))/((1-gamma)*((1-exp(-1*alpha)).^2));
     end
     
-    dAlpha = -1*N*exp(-1*alpha(i))/(1-exp(-1*alpha(i)))-c(i+1)*dXAlpha;
+    dAlpha = -1*N*exp(-1*alpha)/(1-exp(-1*alpha))-c*dXAlpha;
     for k=1:N
-        dAlpha = dAlpha +(e0*exp(-1*alpha(i))+k*exp(-1*alpha(i)*k))/(e-exp(-1*alpha(i)*k));
+        dAlpha = dAlpha +(e0*exp(-1*alpha)+k*exp(-1*alpha*k))/(e-exp(-1*alpha*k));
     end
-    alpha(i+1) = alpha(i) + beta2*dAlpha;
-    if (alpha(i+1) <0 || gamma(i+1)<0)
-        alpha(i+1) = alpha(i);
-        gamma(i+1) = gamma(i);
+    Alpha(i+1) = alpha + beta2*dAlpha;
+    alpha= Alpha(i+1);
+    if (alpha <0 || gamma<0)
+        Alpha(i+1) = Alpha(i);
+        Gamma(i+1) = Gamma(i);
         break;
     end
 end
-cOptimal=c(end);
-gammaOptimal=gamma(end);
-alphaOptimal=alpha(end);
+cOptimal=c;
+gammaOptimal=gamma;
+alphaOptimal=alpha;
 
 
 end

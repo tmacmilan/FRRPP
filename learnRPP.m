@@ -7,8 +7,6 @@ gammaVec =zeros(N,1);
 alphaVec =zeros(N,1);
 tStart=0.01;%constant To avoid this, we manually add a constant value tto all tm
 error=size(N,1);
-accNum = 0;
-ii=1;
 for i=1:N
     timeList = TALL{i};
     timeList = timeList+tStart;
@@ -29,17 +27,9 @@ if method==2
 end
 
 meanError = mean(error(error<1));
-for i=1:N
-    if error(i)>1 || isnan(error(i))
-        ii=ii+1;
-        error(i) = meanError;%“Ï≥£
-        accNum = accNum -1;
-    end
-    if error(i)<0.1
-        accNum=accNum+1;
-    end
-    Acc = accNum/N;
-end
+ii = sum(error>1);%outlier
 display(ii);
+error(error>1)=meanError;%outlier
+Acc= sum(error<0.1)/N;
 end
 

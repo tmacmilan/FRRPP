@@ -1,6 +1,6 @@
 function [cOptimal,gammaOptimal] = learnRPP_PL_forEach(T,indicatorT,e)
 %power low
-iterMax=300;
+iterMax=200;
 beta1=0.0002;
 c(1)=1;
 gamma(1)=5;
