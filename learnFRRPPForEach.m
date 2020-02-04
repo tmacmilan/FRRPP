@@ -1,12 +1,13 @@
 function [ cOptimal,gammaOptimal,alphaOptimal,beta ] = learnFRRPPForEach( TAll,Feature,indicatorT,e0 )
 u = 8000;
-iterMax=500;
+iterMax=200;
 stepC=0.000001;
 stepGamma=0.0002;
 stepAlpha=0.0002;
 nPost= size(Feature,1);
 sizeList=zeros(nPost,1);
 indicatorTimeList=cell(nPost,1);
+tstart=0.01;
 for i=1:nPost
     timeList =  TAll{i};
     tmp = timeList(timeList<=indicatorT);
@@ -16,18 +17,18 @@ for i=1:nPost
     else
         timeList(sizeList(i)+1) = timeList(sizeList(i))+0.5;
     end
-    indicatorTimeList{i}= timeList;
+    indicatorTimeList{i}= timeList+tstart;
 end
 
 T0=1.1;
 %beta = rand(size(Feature,2),1);
-C(1,1:nPost)=3;
+C(1,1:nPost)=0.01;
 Gamma(1,1:nPost)=5;
 Alpha(1,1:nPost)=1;
 
 for i=1:iterMax
     %% update beta
-    [beta,status]=l1_ls(Feature,log(C(i,:))',0.01,0.001,1);
+    [beta,status]=l1_ls(Feature,C(i,:)',0.01,0.001,1);
     for p=1:nPost
         T = indicatorTimeList{p};
         alpha = Alpha(i,p);
@@ -41,12 +42,17 @@ for i=1:iterMax
         for k=2:N+1
             X=X+(T(k).^(1-gamma)-T(k-1).^(1-gamma))*(e-exp(-1*alpha*k))/((1-gamma)*(1-exp(-1*alpha)));
         end
-        dC = -N/c+X+u*(log(c)-Feature(p,:)*beta)/c;
-        C(i+1,p)= C(i,p)-dC*stepC;
-        if C(i+1,p)<=0
-            C(i+1,p) = 0.01;
-        end
-        c= C(i+1,p);
+        %dC = -N/c+X+u*(log(c)-Feature(p,:)*beta)/c;
+        %c = c -dC*stepC
+        %c = N/X;
+        syms cX
+        f=u*cX^2+(X-u*Feature(p,:)*beta)*cX-N;
+        r=solve(f,cX);
+        c=max(r(1),r(2));
+        C(i+1,p)=c;
+        alpha = Alpha(i,p);
+        gamma = Gamma(i,p);
+        c = C(i+1,p);
         %% updating gamma
         k=1;
         dXGamma=(e-exp(-1*alpha*k))*((T0.^(1-gamma)*log(T0)-T(k).^(1-gamma)*log(T(k)))/(1-gamma)+(T(k).^(1-gamma)-T0.^(1-gamma))/((1-gamma).^2))/(1-exp(-1*alpha));
@@ -68,7 +74,7 @@ for i=1:iterMax
             dAlpha = dAlpha +(e0*exp(-1*alpha)+k*exp(-1*alpha*k))/(e-exp(-1*alpha*k));
         end
         Alpha(i+1,p) = alpha + stepAlpha*dAlpha;
-        if (Alpha(i+1,p) <0 || Gamma(i+1,p)<0)
+        if (Alpha(i+1,p) <0 || Gamma(i+1,p)<0) || isnan(Alpha(i+1,p)) || isnan(Gamma(i+1,p))
             Alpha(i+1:iterMax+1,p) = Alpha(i,p);
             Gamma(i+1:iterMax+1,p) = Gamma(i,p);
             C(i+1:iterMax+1,p) = C(i,p);
