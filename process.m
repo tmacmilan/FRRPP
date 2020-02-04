@@ -1,11 +1,11 @@
 function [ TBigger,FeatureBigger,indexBigger] = process( uniqueMid,midAndCommentTime,Feature,indicatorT,number )
-%筛选出大于一定条评论或转发的微博
+%绛涢�夊嚭澶т簬涓�瀹氭潯璇勮鎴栬浆鍙戠殑寰崥
 N = length(uniqueMid);
 indexBigger=[];
 TBigger={};FeatureBigger=[];
 iBigger=0;
 for i=1:N
-    display(i);
+    %display(i);
     mid = uniqueMid(i);
     index = strcmp(midAndCommentTime(:,1),mid);
     timeList = cell2mat(midAndCommentTime(index,2));
