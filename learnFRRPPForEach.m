@@ -1,5 +1,5 @@
 function [ cOptimal,gammaOptimal,alphaOptimal,beta ] = learnFRRPPForEach( TAll,Feature,indicatorT,e0 )
-u = 8000;
+u = 2000;
 iterMax=200;
 stepC=0.000001;
 stepGamma=0.0002;
@@ -42,13 +42,11 @@ for i=1:iterMax
         for k=2:N+1
             X=X+(T(k).^(1-gamma)-T(k-1).^(1-gamma))*(e-exp(-1*alpha*k))/((1-gamma)*(1-exp(-1*alpha)));
         end
-        %dC = -N/c+X+u*(log(c)-Feature(p,:)*beta)/c;
+        %dC = -N/c+X+u*(log(c)-Feature(p,:)*beta)/c; %dC = -N/c+X+u*(c-Feature(p,:)*beta);
         %c = c -dC*stepC
         %c = N/X;
-        syms cX
-        f=u*cX^2+(X-u*Feature(p,:)*beta)*cX-N;
-        r=solve(f,cX);
-        c=max(r(1),r(2));
+        delta= ((X-u*Feature(p,:)*beta)).^2+4*u*N;
+        c = (-1*(X-u*Feature(p,:)*beta)+sqrt(delta))/(2*u);
         C(i+1,p)=c;
         alpha = Alpha(i,p);
         gamma = Gamma(i,p);
