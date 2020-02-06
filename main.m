@@ -22,13 +22,11 @@ refreTime=24;
 indicatorTime=10;
 e=30; %para
 [TBigger,FeatureBigger,indexBigger ] = process( uniqueMid,midAndCommentTime,Feature,indicatorTime,10);
-%% RPP
-[cVec,gammaVec,alphaVec,errorRPPList,AccRPP] = learnRPP(TBigger,FeatureBigger,refreTime,indicatorTime,e,0);
-ErrorRPP = mean(errorRPPList)
-%% ExRPP
-[cVec_1,gammaVec_1,alphaVec_1,errorExRPPList,AccExRPP] = learnRPP(TBigger,FeatureBigger,refreTime,indicatorTime,e,1);
-ErrorExRPP = mean(errorExRPPList)
-%% FRRPP
-[cVec_2,gammaVec_2,alphaVec_2,errorFRRPPList,AccFRRPP] = learnRPP(TBigger,FeatureBigger,refreTime,indicatorTime,e,2);
-ErrorFRRPP = mean(errorFRRPPList)
+[cVec,gammaVec,alphaVec] = learnFRRPPForEach(TBigger,FeatureBigger,indicatorTime,e); %%
+errorFRRPPList =zeros(length(indexBigger),1)
+for i=1:length(indexBigger)
+     errorFRRPPList(i)= predictForEach(TBigger,refreTime,indicatorTime,cVec(i),gammaVec(i),alphaVec(i),e);
+end
+ErrorFRRPP = mean(errorFRRPPList(errorFRRPPList<1));
+Acc= sum(errorFRRPPList<0.1)/N;
 
