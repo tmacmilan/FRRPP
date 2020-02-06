@@ -23,8 +23,8 @@ end
 T0=1.1;
 %beta = rand(size(Feature,2),1);
 C(1,1:nPost)=0.01;
-Gamma(1,1:nPost)=2;
-Alpha(1,1:nPost)=1;
+Gamma(1,1:nPost)=1.2;
+Alpha(1,1:nPost)=2;
 
 for i=1:iterMax
     %% update beta
